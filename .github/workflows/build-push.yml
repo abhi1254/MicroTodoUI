@@ -1,22 +1,23 @@
-name: Frontend CI/CD Pipeline
-
-on:
-  push:
-    branches:
-      - main
-
 jobs:
-  build_and_push:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-      - name: Azure Login
+      - name: Azure login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Build and Push Docker Image
+      - name: Docker login to ACR
         run: |
-          az acr build --registry todoprodacrz8x37a --image frontend:$(echo $GITHUB_SHA | cut -c1-8) .
+          az acr login --name todoprodacrz8x37a
+
+      - name: Build Docker image
+        run: |
+          docker build -t todoprodacrz8x37a.azurecr.io/frontend:${GITHUB_SHA::8} .
+
+      - name: Push Docker image
+        run: |
+          docker push todoprodacrz8x37a.azurecr.io/frontend:${GITHUB_SHA::8}
